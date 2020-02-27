@@ -16,6 +16,15 @@ exports.validateLoginRules = () => {
 	]
 }
 
+exports.validateUpdateRules = () => {
+	return [
+		check('name').optional(),
+        check('surname').optional(),
+        check('email').optional().isEmail(),
+        check('password').optional().isLength({min: 4, max: 32})
+	]
+}
+
 exports.validate = (req, res, next) => {
     const errors = validationResult(req)
     if (errors.isEmpty()) {
