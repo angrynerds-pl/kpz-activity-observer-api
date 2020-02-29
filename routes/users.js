@@ -6,6 +6,96 @@ const bcrypt = require('bcrypt');
 const express = require('express');
 const router = express.Router();
 
+/**
+ * @swagger
+ *
+ * definitions:
+ *   User:
+ *     type: object
+ *     required:
+ *       - id
+ *       - name
+ *       - surname
+ *       - email
+ *     properties:
+ *       id:
+ *         type: string
+ *       name:
+ *         type: string
+ *         example: Jan
+ *       surname:
+ *         type: string
+ *         example: Kowalski
+ *       email:
+ *         type: string
+ *         format: email
+ *   NewUser:
+ *     type: object
+ *     required:
+ *       - password
+ *       - name
+ *       - surname
+ *       - email
+ *     properties:
+ *       password:
+ *         type: string
+ *       name:
+ *         type: string
+ *         example: Jan
+ *       surname:
+ *         type: string
+ *         example: Kowalski
+ *       email:
+ *         type: string
+ *         format: email
+ *   token:
+ *     type: object
+ *     properties:
+ *       x-auth-token:
+ *         type: string
+ *   error:
+ *     type: object
+ *     properties:
+ *       status:
+ *         type: number
+ *       error:
+ *         type: string
+ *   response:
+ *     type: object
+ *     properties:
+ *       status:
+ *         type: number
+ *       data:
+ *         $ref: '#/definitions/User'
+ */
+
+ /**
+ * @swagger
+ *
+ * /user/me:
+ *   get:
+ *     tags: [users]
+ *     description: Get logged user data
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: user
+ *         description: User's JWT
+ *         in:  header
+ *         required: true
+ *         type: string
+ *         schema:
+ *           $ref: '#/definitions/token'
+ *     responses:
+ *       200:
+ *         description: User data
+ *         schema:
+ *           $ref: '#/definitions/response'
+ *       400:
+ *         description: Error
+ *         schema:
+ *           $ref: '#/definitions/error'
+ */
 
 router.get('/me', auth, async (req, res) => {
 	res.status(200).json({
@@ -14,6 +104,35 @@ router.get('/me', auth, async (req, res) => {
 	});
 });
 
+
+ /**
+ * @swagger
+ *
+ * /user:
+ *   get:
+ *     tags: [users]
+ *     description: Get all users data(for admin only)
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: x-auth-token
+ *         description: Admin's JWT
+ *         in:  header
+ *         required: true
+ *         type: string
+ *         schema:
+ *           $ref: '#/definitions/token'
+ *     responses:
+ *       200:
+ *         description: Users data
+ *         schema:
+ *           $ref: '#/definitions/response'
+ *       400:
+ *         description: Error
+ *         schema:
+ *           $ref: '#/definitions/error'
+ */
+
 router.get('/', auth, admin, async (req, res) => {
 	let users = await User.find()
 	res.status(200).json({
@@ -21,6 +140,22 @@ router.get('/', auth, admin, async (req, res) => {
 		data: users
 	});
 });
+
+/**
+ * @swagger
+ *
+ * /user/delete:
+ *   delete:
+ *     tags: [users]
+ *     description: Drop entire database(for develop purposes only, will be removed in the future)
+ *     responses:
+ *       200:
+ *         description: Success
+ *       500:
+ *         description: Error
+ *         schema:
+ *           $ref: '#/definitions/error'
+ */
 
 router.delete('/delete', async (req, res) => {
 	if(process.env.NODE_ENV == 'development'){
@@ -31,6 +166,32 @@ router.delete('/delete', async (req, res) => {
 	}
 });
 
+
+/**
+ * @swagger
+ *
+ * /user/:
+ *   patch:
+ *     tags: [users]
+ *     description: Change user's data
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: user
+ *         description: User data
+ *         in:  body
+ *         required: true
+ *         type: string
+ *         schema:
+ *           $ref: '#/definitions/NewUser'
+ *     responses:
+ *       200:
+ *         description: Success
+ *       400:
+ *         description: Error
+ *         schema:
+ *           $ref: '#/definitions/error'
+ */
 router.patch('/', auth, validateUpdateRules(), validate, async (req, res) => {
 	let body = req.body;
 	if (req.body.email && req.body.email != req.user.email) {
@@ -61,6 +222,32 @@ router.patch('/', auth, validateUpdateRules(), validate, async (req, res) => {
 	});
 	
 });
+
+/**
+ * @swagger
+ *
+ * /user/:
+ *   post:
+ *     tags: [users]
+ *     description: Register new user
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: user
+ *         description: New User data
+ *         in:  body
+ *         required: true
+ *         type: string
+ *         schema:
+ *           $ref: '#/definitions/NewUser'
+ *     responses:
+ *       200:
+ *         description: Success
+ *       400:
+ *         description: Error
+ *         schema:
+ *           $ref: '#/definitions/error'
+ */
 
 router.post('/', validateRegisterRules(), validate, async (req, res) => {
 	let user = await User.findOne({

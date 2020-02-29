@@ -5,7 +5,65 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
 
+/**
+ * @swagger
+ *
+ * definitions:
+ *   Login:
+ *     type: object
+ *     required:
+ *       - email
+ *       - password
+ *     properties:
+ *       email:
+ *         type: string
+ *         format: email
+ *       password:
+ *         type: string
+ *         format: password
+ *   JWT:
+ *     type: object
+ *     properties:
+ *       status:
+ *         type: number
+ *       accessToken:
+ *         type: string
+ *   error:
+ *     type: object
+ *     properties:
+ *       status:
+ *         type: number
+ *       error:
+ *         type: string
+ */
 
+ /**
+ * @swagger
+ *
+ * /auth:
+ *   post:
+ *     tags: [auth]
+ *     description: Returns JWT
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: user
+ *         description: User credentials
+ *         in:  body
+ *         required: true
+ *         type: string
+ *         schema:
+ *           $ref: '#/definitions/Login'
+ *     responses:
+ *       200:
+ *         description: JWT
+ *         schema:
+ *           $ref: '#/definitions/JWT'
+ *       400:
+ *         description: Error
+ *         schema:
+ *           $ref: '#/definitions/error'
+ */
 router.post('/', validateLoginRules(), validate, async (req, res) => {
 
 	let user = await User.findOne({
