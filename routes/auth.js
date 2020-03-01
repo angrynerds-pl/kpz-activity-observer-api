@@ -71,19 +71,31 @@ router.post('/', validateLoginRules(), validate, async (req, res) => {
 	});
 	if (!user) return res.status(400).json({
 		status: 400, 
-		error: 'Invalid e-mail.'
+		errors: [
+			{
+				param: "email",
+				message:'USER_NOT_EXISTS'
+			}
+		]
 	});
 
 	const validPassword = await bcrypt.compare(req.body.password, user.password);
 	if (!validPassword) return res.status(400).json({
 		status: 400,
-		error: 'Invalid password.'
+		errors: [
+			{
+				param: "password",
+				message:'INVALID_PASSWORD'
+			}
+		]
 	});
 
 	const token = user.generateAuthToken();
 	res.status(200).json({
 		status: 200,
-		accessToken: token
+		data: {
+			accessToken: token
+		}
 	});
 });
 
