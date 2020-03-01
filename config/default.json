@@ -1,0 +1,5 @@
+{
+    "jwtPrivateKey": "superSecretActivityObserverKey",
+    "db": "mongodb+srv://user:userPassword@cluster0-8o8ys.mongodb.net/observerTest?retryWrites=true&w=majority",
+    "tokenLifetime": "24h"
+}
