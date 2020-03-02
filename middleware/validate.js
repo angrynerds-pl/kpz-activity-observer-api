@@ -2,26 +2,26 @@ const { check, validationResult } = require('express-validator');
 
 exports.validateRegisterRules = () => {
     return [
-        check('name').exists().withMessage("MISSING"),
-        check('surname').exists().withMessage("MISSING"),
-        check('email').exists().withMessage("MISSING").isEmail().withMessage("BAD_FORMAT"),
-        check('password').exists().withMessage("MISSING").isLength({min: 4}).withMessage("TOO_SHORT").isLength({max: 32}).withMessage("TOO_LONG")
+        check('name').not().isEmpty().withMessage("required"),
+        check('surname').not().isEmpty().withMessage("required"),
+        check('email').not().isEmpty().withMessage("required").isEmail().withMessage("email"),
+        check('password').not().isEmpty().withMessage("required").isLength({min: 4}).withMessage("minLength").isLength({max: 32}).withMessage("maxLength")
     ]
 }
 
 exports.validateLoginRules = () => {
 	return [
-		check('email').exists().withMessage("MISSING").isEmail().withMessage("BAD_FORMAT"),
-		check('password').exists().withMessage("MISSING").isLength({min: 4}).withMessage("TOO_SHORT").isLength({max: 32}).withMessage("TOO_LONG")
+		check('email').not().isEmpty().withMessage("required").isEmail().withMessage("email"),
+		check('password').not().isEmpty().withMessage("required").isLength({min: 4}).withMessage("minLength").isLength({max: 32}).withMessage("maxLength")
 	]
 }
 
 exports.validateUpdateRules = () => {
 	return [
-		check('name').optional(),
-        check('surname').optional(),
-        check('email').optional().isEmail().withMessage("BAD_FORMAT"),
-        check('password').exists().withMessage("MISSING").isLength({min: 4}).withMessage("TOO_SHORT").isLength({max: 32}).withMessage("TOO_LONG")
+		check('name').optional().not().isEmpty().withMessage("required"),
+        check('surname').optional().not().isEmpty().withMessage("required"),
+        check('email').optional().not().isEmpty().withMessage("required").isEmail().withMessage("email"),
+        check('password').optional().not().isEmpty().withMessage("required").isLength({min: 4}).withMessage("minLength").isLength({max: 32}).withMessage("maxLength")
 	]
 }
 

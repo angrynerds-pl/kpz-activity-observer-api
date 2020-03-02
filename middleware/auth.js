@@ -9,7 +9,7 @@ module.exports = function (req, res, next) {
 		errors: [
 			{
 				param: "token",
-				message:'MISSING'
+				message:'required'
 			}
 		]
 	});
