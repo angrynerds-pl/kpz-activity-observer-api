@@ -2,26 +2,26 @@ const { check, validationResult } = require('express-validator');
 
 exports.validateRegisterRules = () => {
     return [
-        check('name').exists(),
-        check('surname').exists(),
-        check('email').exists().isEmail(),
-        check('password').exists().isLength({min: 4, max: 32})
+        check('name').not().isEmpty().withMessage("required"),
+        check('surname').not().isEmpty().withMessage("required"),
+        check('email').not().isEmpty().withMessage("required").isEmail().withMessage("email"),
+        check('password').not().isEmpty().withMessage("required").isLength({min: 4}).withMessage("minLength").isLength({max: 32}).withMessage("maxLength")
     ]
 }
 
 exports.validateLoginRules = () => {
 	return [
-		check('email').exists().isEmail(),
-		check('password').exists().isLength({min: 4, max: 32})
+		check('email').not().isEmpty().withMessage("required").isEmail().withMessage("email"),
+		check('password').not().isEmpty().withMessage("required").isLength({min: 4}).withMessage("minLength").isLength({max: 32}).withMessage("maxLength")
 	]
 }
 
 exports.validateUpdateRules = () => {
 	return [
-		check('name').optional(),
-        check('surname').optional(),
-        check('email').optional().isEmail(),
-        check('password').optional().isLength({min: 4, max: 32})
+		check('name').optional().not().isEmpty().withMessage("required"),
+        check('surname').optional().not().isEmpty().withMessage("required"),
+        check('email').optional().not().isEmpty().withMessage("required").isEmail().withMessage("email"),
+        check('password').optional().not().isEmpty().withMessage("required").isLength({min: 4}).withMessage("minLength").isLength({max: 32}).withMessage("maxLength")
 	]
 }
 
@@ -31,7 +31,10 @@ exports.validate = (req, res, next) => {
       	return next()
     }
     const extractedErrors = []
-    errors.array().map(err => extractedErrors.push({ [err.param]: err.msg }))
+    errors.array().map(err => extractedErrors.push({
+        param: err.param, 
+        message: err.msg 
+    }))
   
     return res.status(422).json({
 		status: 422,

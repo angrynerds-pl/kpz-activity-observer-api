@@ -58,8 +58,15 @@ const router = express.Router();
  *     properties:
  *       status:
  *         type: number
- *       error:
- *         type: string
+ *       errors:
+ *         type: array
+ *         items:
+ *           type: object
+ *           properties:
+ *             param:
+ *               type: string
+ *             message: 
+ *               type: string
  *   response:
  *     type: object
  *     properties:
@@ -79,7 +86,7 @@ const router = express.Router();
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: user
+ *       - name: x-auth-token
  *         description: User's JWT
  *         in:  header
  *         required: true
@@ -177,6 +184,13 @@ router.delete('/delete', async (req, res) => {
  *     produces:
  *       - application/json
  *     parameters:
+ *       - name: x-auth-token
+ *         description: User's JWT
+ *         in:  header
+ *         required: true
+ *         type: string
+ *         schema:
+ *           $ref: '#/definitions/token'
  *       - name: user
  *         description: User data
  *         in:  body
@@ -200,7 +214,12 @@ router.patch('/', auth, validateUpdateRules(), validate, async (req, res) => {
 		});
 		if (user) return res.status(400).json({
 			status: 400, 
-			message:"User with that e-mail already exists!"
+			errors: [
+				{
+					param: "email",
+					message:'EMAIL_TAKEN'
+				}
+			]
 		});
 	}
 	if(body.password) {
@@ -211,12 +230,17 @@ router.patch('/', auth, validateUpdateRules(), validate, async (req, res) => {
 		if(!err) {
 			res.status(200).json({
 				status: 200, 
-				message:"User updated!"
+				message:"USER_UPDATED"
 			});
 		} else {
 			res.status(503).json({
 				status: 503, 
-				error:"User could not be updated"
+				errors: [
+					{
+						param: "system",
+						message:'SYSTEM_ERROR'
+					}
+				]
 			});
 		}
 	});
@@ -255,7 +279,12 @@ router.post('/', validateRegisterRules(), validate, async (req, res) => {
 	});
 	if (user) return res.status(400).json({
 		status: 400, 
-		message:"User with that e-mail already exists!"
+		errors: [
+			{
+				param: "email",
+				message:'EMAIL_TAKEN'
+			}
+		]
 	});
 
 	user = new User(req.body);
@@ -265,12 +294,17 @@ router.post('/', validateRegisterRules(), validate, async (req, res) => {
 		if(!err) {
 			res.status(201).json({
 				status: 201, 
-				message:"User created!"
+				message: "USER_CREATED"
 			});
 		} else {
 			res.status(503).json({
 				status: 503, 
-				error:"User could not be created"
+				errors: [
+					{
+						param: "system",
+						message:'SYSTEM_ERROR'
+					}
+				]
 			});
 		}
 	});
