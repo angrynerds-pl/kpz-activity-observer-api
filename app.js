@@ -15,6 +15,7 @@ const swaggerSpec = swaggerJSDoc(options);
 
 const auth = require('./routes/auth');
 const users = require('./routes/users');
+const sites = require('./routes/sites');
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -25,7 +26,8 @@ app.use(express.json());
 app.use(helmet())
 app.use('/api/auth', auth);
 app.use('/api/users', users);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api/sites', sites);
+app.use('/api/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 mongoose.set('useCreateIndex', true);
 mongoose.set('useNewUrlParser', true);

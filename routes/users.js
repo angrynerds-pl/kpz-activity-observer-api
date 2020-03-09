@@ -141,7 +141,7 @@ router.get('/me', auth, async (req, res) => {
  */
 
 router.get('/', auth, admin, async (req, res) => {
-	let users = await User.find()
+	let users = await User.find().select("-password -sites")
 	res.status(200).json({
 		status: 200,
 		data: users
