@@ -51,6 +51,20 @@ const router = express.Router();
  *       endTime:
  *         type: string
  *         format: date-time
+ *   EditSite:
+ *     type: object
+ *     required:
+ *       - url
+ *       - endTime
+ *       - recordID
+ *     properties:
+ *       url:
+ *         type: string
+ *       endTime:
+ *         type: string
+ *         format: date-time
+ *       recordID:
+ *         type: string
  *   token:
  *     type: object
  *     properties:
@@ -77,6 +91,15 @@ const router = express.Router();
  *         type: number
  *       data:
  *         $ref: '#/definitions/Site'
+ *   NewSiteResponse:
+ *     type: object
+ *     properties:
+ *       status:
+ *         type: number
+ *       message: 
+ *         type: string
+ *       recordID:
+ *         type: string
  */
 
 
@@ -241,13 +264,16 @@ router.get('/:id', auth, admin, async (req, res) => {
  *     responses:
  *       200:
  *         description: Success
+ *         schema: 
+ *           $ref: '#/definitions/NewSiteResponse'
  *       400:
  *         description: Error
  *         schema:
  *           $ref: '#/definitions/error'
  */
 router.post('/', auth, validateSiteRules(), validate, url, async (req, res) => {
-	let site = await Site.findOne({url: req.body.url});
+	let site = await Site.findOne({url: req.url});
+	let index;
 	if(!site) {
 		site = new Site({
 			url: req.url,
@@ -259,8 +285,9 @@ router.post('/', auth, validateSiteRules(), validate, url, async (req, res) => {
 				}]
 			}]
 		})
+		index = 0;
 	} else {
-		let index = site.occurences.findIndex(item => {return item.user == req.user._id});
+		index = site.occurences.findIndex(item => {return item.user == req.user._id});
 		if(index < 0) {
 			site.occurences.push({
 				user: req.user._id,
@@ -269,6 +296,7 @@ router.post('/', auth, validateSiteRules(), validate, url, async (req, res) => {
 					endTime: req.body.endTime
 				}]
 			});
+			index = site.occurences.length - 1;
 		} else {
 			site.occurences[index].timestamps.push({
 				startTime: req.body.startTime,
@@ -278,9 +306,11 @@ router.post('/', auth, validateSiteRules(), validate, url, async (req, res) => {
 	}
 	await site.save((err)=>{
 		if(!err) {
+			let siteid = site.occurences[index].timestamps[site.occurences[index].timestamps.length - 1]._id;
 			res.status(201).json({
 				status: 201, 
-				message: "SAVED"
+				message: "SAVED",
+				recordID: siteid
 			});
 		} else {
 			res.status(503).json({
@@ -294,6 +324,87 @@ router.post('/', auth, validateSiteRules(), validate, url, async (req, res) => {
 			});
 		}
 	});
+});
+
+/**
+ * @swagger
+ *
+ * /sites/:
+ *   patch:
+ *     tags: [sites]
+ *     description: Add visit endTime
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: site
+ *         description: Visit endtime, url and recordID
+ *         in:  body
+ *         required: true
+ *         type: string
+ *         schema:
+ *           $ref: '#/definitions/EditSite'
+ *       - name: JWT
+ *         description: User'S JWT
+ *         in: header
+ *         required: true
+ *         type: string
+ *         schema: 
+ *           $ref: '#/definitions/token'
+ *     responses:
+ *       200:
+ *         description: Success
+ *       400:
+ *         description: Error
+ *         schema:
+ *           $ref: '#/definitions/error'
+ */
+router.patch('/', auth, validateUpdateSiteRules(), validate, url, async (req, res) => {
+	let site = await Site.findOne({url: req.url});
+	let index = site.occurences.findIndex(item =>{return item.user == req.user._id});
+	if(index < 0) {
+		res.status(400).json({
+			status: 400, 
+			errors: [
+				{
+					param: "site",
+					message:'NO_OCCURENCES'
+				}
+			]
+		});
+	} else {
+		let timestampIndex = site.occurences[index].timestamps.findIndex(item => {return item._id == req.body.recordID})
+		if (timestampIndex < 0) {
+			res.status(400).json({
+				status: 400, 
+				errors: [
+					{
+						param: "site",
+						message:'NO_TIMESTAMP'
+					}
+				]
+			});
+		} else {
+			site.occurences[index].timestamps[timestampIndex].endTime = req.body.endTime;
+			await site.save((err)=>{
+				if(!err) {
+					res.status(200).json({
+						status: 200, 
+						message: "SAVED",
+					});
+				} else {
+					res.status(503).json({
+						status: 503, 
+						errors: [
+							{
+								param: "system",
+								message:'SYSTEM_ERROR'
+							}
+						]
+					});
+				}
+			});
+		}
+	}
 });
 
 module.exports = router;

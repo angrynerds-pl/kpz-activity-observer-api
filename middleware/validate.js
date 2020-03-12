@@ -33,6 +33,14 @@ exports.validateSiteRules = () => {
 	]
 }
 
+exports.validateUpdateSiteRules = () => {
+	return [
+		check('url').not().isEmpty().withMessage("required"),
+        check('recordID').not().isEmpty().withMessage("required"),
+        check('endTime').not().isEmpty().withMessage("required"),
+	]
+}
+
 exports.validate = (req, res, next) => {
     const errors = validationResult(req)
     if (errors.isEmpty()) {
