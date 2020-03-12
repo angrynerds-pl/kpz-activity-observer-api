@@ -25,6 +25,14 @@ exports.validateUpdateRules = () => {
 	]
 }
 
+exports.validateSiteRules = () => {
+	return [
+		check('url').not().isEmpty().withMessage("required"),
+        check('startTime').not().isEmpty().withMessage("required"),
+        check('endTime').optional().not().isEmpty().withMessage("required"),
+	]
+}
+
 exports.validate = (req, res, next) => {
     const errors = validationResult(req)
     if (errors.isEmpty()) {

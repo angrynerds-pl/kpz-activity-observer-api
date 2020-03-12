@@ -5,18 +5,26 @@ const siteSchema = new mongoose.Schema({
 	_id: {
 		type: String,
 		default: uuid.v4
-	},
+    },
 	url: {
         type: String,
         required: true
     },
-    startTime: {
-        type: Date,
-        required: true
-    },
-    endTime: {
-        type: Date
-    }
+    occurences: [{ 
+        user: {
+            type: String,
+            ref: 'User'
+        },
+        timestamps: [{
+            startTime: {
+                type: Date,
+                required: true
+            },
+            endTime: {
+                type: Date
+            }
+        }]  
+    }]
 });
 
 

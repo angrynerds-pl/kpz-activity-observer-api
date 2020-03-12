@@ -28,11 +28,7 @@ const userSchema = new mongoose.Schema({
 	admin: {
 		type: Boolean,
 		default: false
-	},
-	sites: [{
-		type: String,
-		ref: 'Site'
-	}]
+	}
 });
 
 userSchema.methods.generateAuthToken = function () {

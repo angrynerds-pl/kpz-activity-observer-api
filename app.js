@@ -9,7 +9,7 @@ const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerDefinition = {swaggerOptions: {defaultModelsExpandDepth: -1},};
 const options = {
   swaggerDefinition,
-  apis: ['./routes/auth.js', './routes/users.js']
+  apis: ['./routes/auth.js', './routes/users.js', './routes/sites.js']
 };
 const swaggerSpec = swaggerJSDoc(options);
 
