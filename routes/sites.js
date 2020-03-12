@@ -1,7 +1,7 @@
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
 const url = require('../middleware/url');
-const { validateSiteRules, validate } = require('../middleware/validate.js')
+const { validateSiteRules, validateUpdateSiteRules, validate } = require('../middleware/validate.js')
 const {Site} = require('../models/site');
 const express = require('express');
 const router = express.Router();
