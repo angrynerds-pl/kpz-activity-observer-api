@@ -74,12 +74,31 @@ const router = express.Router();
  *         type: number
  *       data:
  *         $ref: '#/definitions/User'
+ *   paginationResponse:
+ *     type: object
+ *     properties: 
+ *       status:
+ *         type: number
+ *       data: 
+ *         type: object
+ *         properties:
+ *           docs:
+ *             $ref: '#/definitions/User'
+ *           total:
+ *             type: number
+ *           limit:
+ *             type: number
+ *           page:
+ *             type: number
+ *           pages:
+ *             type: number
+ *                 
  */
 
  /**
  * @swagger
  *
- * /user/me:
+ * /users/me:
  *   get:
  *     tags: [users]
  *     description: Get logged user data
@@ -115,7 +134,7 @@ router.get('/me', auth, async (req, res) => {
  /**
  * @swagger
  *
- * /user:
+ * /users?limit=<value>&page=<value>:
  *   get:
  *     tags: [users]
  *     description: Get all users data(for admin only)
@@ -133,7 +152,7 @@ router.get('/me', auth, async (req, res) => {
  *       200:
  *         description: Users data
  *         schema:
- *           $ref: '#/definitions/response'
+ *           $ref: '#/definitions/paginationResponse'
  *       400:
  *         description: Error
  *         schema:
@@ -141,17 +160,19 @@ router.get('/me', auth, async (req, res) => {
  */
 
 router.get('/', auth, admin, async (req, res) => {
-	let users = await User.find()
-	res.status(200).json({
-		status: 200,
-		data: users
+	await User.paginate({}, { page: parseInt(req.query.page), limit: parseInt(req.query.limit), select: "-password" })
+	.then(response => {
+		res.status(200).json({
+			status: 200,
+			data: response
+		});
 	});
 });
 
 /**
  * @swagger
  *
- * /user/delete:
+ * /users/delete:
  *   delete:
  *     tags: [users]
  *     description: Drop entire database(for develop purposes only, will be removed in the future)
@@ -177,7 +198,7 @@ router.delete('/delete', async (req, res) => {
 /**
  * @swagger
  *
- * /user/:
+ * /users/:
  *   patch:
  *     tags: [users]
  *     description: Change user's data
@@ -250,7 +271,7 @@ router.patch('/', auth, validateUpdateRules(), validate, async (req, res) => {
 /**
  * @swagger
  *
- * /user/:
+ * /users/:
  *   post:
  *     tags: [users]
  *     description: Register new user

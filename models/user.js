@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+var mongoosePaginate = require('mongoose-paginate');
 const jwt = require('jsonwebtoken');
 const config = require('config');
 const uuid = require('node-uuid');
@@ -42,7 +43,9 @@ userSchema.methods.generateAuthToken = function () {
 	return token;
 };
 
+userSchema.plugin(mongoosePaginate);
 const User = mongoose.model('User', userSchema);
+
 
 exports.userSchema = userSchema;
 exports.User = User;
