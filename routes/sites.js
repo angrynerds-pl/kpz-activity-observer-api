@@ -16,6 +16,10 @@ const router = express.Router();
  *     properties:
  *       url:
  *         type: string
+ *       totalVisits:
+ *         type: number
+ *       totalTime:
+ *         type: number
  *       occurences:
  *         type: array
  *         items:
@@ -23,6 +27,10 @@ const router = express.Router();
  *           properties:
  *             user:
  *               type: string
+ *             time:
+ *               type: number
+ *             visits:
+ *               type: number
  *             timestamps: 
  *               type: array
  *               items:
@@ -31,9 +39,15 @@ const router = express.Router();
  *                   startTime:
  *                     type: string
  *                     format: date-time
- *                   endTime: 
- *                     type: string
- *                     format: date-time
+ *   UserSite:
+ *     type: object
+ *     properties:
+ *       url:
+ *         type: string
+ *       time:
+ *         type: number
+ *       visits:
+ *         type: number
  *         
  *   NewSite:
  *     type: object
@@ -91,6 +105,13 @@ const router = express.Router();
  *         type: number
  *       data:
  *         $ref: '#/definitions/Site'
+ *   responseUser:
+ *     type: object
+ *     properties:
+ *       status:
+ *         type: number
+ *       data:
+ *         $ref: '#/definitions/UserSite'
  *   NewSiteResponse:
  *     type: object
  *     properties:
@@ -159,7 +180,7 @@ router.get('/', auth, admin, async (req, res) => {
  *       200:
  *         description: User visits
  *         schema:
- *           $ref: '#/definitions/response'
+ *           $ref: '#/definitions/responseUser'
  *       400:
  *         description: Error
  *         schema:
@@ -177,7 +198,8 @@ router.get('/me', auth, async (req, res) => {
 		})
 		userSites.push({
 			url: item.url,
-			timestamps: item.occurences[index].timestamps
+			visits: item.visits,
+			time: item.time,
 		});
 	})
 
@@ -281,26 +303,25 @@ router.post('/', auth, validateSiteRules(), validate, url, async (req, res) => {
 				user: req.user._id,
 				timestamps: [{
 					startTime: req.body.startTime,
-					endTime: req.body.endTime
 				}]
 			}]
 		})
 		index = 0;
 	} else {
 		index = site.occurences.findIndex(item => {return item.user == req.user._id});
+		site.totalVisits += 1;
 		if(index < 0) {
 			site.occurences.push({
 				user: req.user._id,
 				timestamps: [{
 					startTime: req.body.startTime,
-					endTime: req.body.endTime
 				}]
 			});
 			index = site.occurences.length - 1;
 		} else {
+			site.occurences[index].visits += 1;
 			site.occurences[index].timestamps.push({
 				startTime: req.body.startTime,
-				endTime: req.body.endTime
 			})
 		}
 	}
@@ -384,7 +405,25 @@ router.patch('/', auth, validateUpdateSiteRules(), validate, url, async (req, re
 				]
 			});
 		} else {
-			site.occurences[index].timestamps[timestampIndex].endTime = req.body.endTime;
+			let dateStart = new Date(site.occurences[index].timestamps[timestampIndex].startTime);
+			let dateEnd = new Date(req.body.endTime);
+			let timeCount = Math.ceil(parseFloat((dateEnd - dateStart)/(1000*60)));
+			if(timeCount >= 1) {
+				site.totalTime += timeCount;
+				site.occurences[index].time += timeCount;
+				site.occurences[index].timestamps.pull({_id: req.body.recordID});
+			} else {
+				res.status(503).json({
+					status: 503, 
+					errors: [
+						{
+							param: "endTime",
+							message:'BAD_VALUE'
+						}
+					]
+				});
+			}
+			
 			await site.save((err)=>{
 				if(!err) {
 					res.status(200).json({

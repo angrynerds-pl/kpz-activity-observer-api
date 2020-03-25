@@ -10,18 +10,31 @@ const siteSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    totalTime: {
+        type: Number,
+        default: 0
+    },
+    totalVisits: {
+        type: Number,
+        default: 1
+    },
     occurences: [{ 
         user: {
             type: String,
             ref: 'User'
         },
+        visits: {
+            type: Number,
+            default: 1
+        },
+        time: {
+            type: Number,
+            default: 0
+        },
         timestamps: [{
             startTime: {
                 type: Date,
                 required: true
-            },
-            endTime: {
-                type: Date
             }
         }]  
     }]
