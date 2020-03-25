@@ -198,8 +198,8 @@ router.get('/me', auth, async (req, res) => {
 		})
 		userSites.push({
 			url: item.url,
-			visits: item.visits,
-			time: item.time,
+			visits: item.occurences[index].visits,
+			time: item.occurences[index].time,
 		});
 	})
 
@@ -248,6 +248,8 @@ router.get('/:id', auth, admin, async (req, res) => {
 		});	
 		userSites.push({
 			url: item.url,
+			visits: item.occurences[index].visits,
+			time: item.occurences[index].time,
 			timestamps: item.occurences[index].timestamps
 		});
 	})
@@ -295,15 +297,19 @@ router.get('/:id', auth, admin, async (req, res) => {
  */
 router.post('/', auth, validateSiteRules(), validate, url, async (req, res) => {
 	let site = await Site.findOne({url: req.url});
+	let timeCount = 0;
+	if(req.body.endTime) {
+		let dateStart = new Date(req.body.startTime);
+		let dateEnd = new Date(req.body.endTime);
+		timeCount = Math.ceil(parseFloat((dateEnd - dateStart)/(1000*60)));
+	}
 	let index;
 	if(!site) {
 		site = new Site({
 			url: req.url,
 			occurences:[{
 				user: req.user._id,
-				timestamps: [{
-					startTime: req.body.startTime,
-				}]
+				timestamps: req.body.endTime ? [] : [{startTime: req.body.startTime}]
 			}]
 		})
 		index = 0;
@@ -313,25 +319,28 @@ router.post('/', auth, validateSiteRules(), validate, url, async (req, res) => {
 		if(index < 0) {
 			site.occurences.push({
 				user: req.user._id,
-				timestamps: [{
-					startTime: req.body.startTime,
-				}]
+				timestamps: req.body.endTime ? [] : [{startTime: req.body.startTime}]
 			});
 			index = site.occurences.length - 1;
 		} else {
 			site.occurences[index].visits += 1;
-			site.occurences[index].timestamps.push({
-				startTime: req.body.startTime,
-			})
+			if(!req.body.endTime) {
+				site.occurences[index].timestamps.push({
+					startTime: req.body.startTime,
+				})
+			}
 		}
+	}
+	if(timeCount >= 1) {
+		site.totalTime += timeCount;
+		site.occurences[index].time += timeCount;
 	}
 	await site.save((err)=>{
 		if(!err) {
-			let siteid = site.occurences[index].timestamps[site.occurences[index].timestamps.length - 1]._id;
 			res.status(201).json({
 				status: 201, 
 				message: "SAVED",
-				recordID: siteid
+				recordID: req.body.endTime ? "" : site.occurences[index].timestamps[site.occurences[index].timestamps.length - 1]._id
 			});
 		} else {
 			res.status(503).json({
