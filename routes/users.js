@@ -160,13 +160,21 @@ router.get('/me', auth, async (req, res) => {
  */
 
 router.get('/', auth, admin, async (req, res) => {
-	await User.paginate({}, { page: parseInt(req.query.page), limit: parseInt(req.query.limit), select: "-password" })
-	.then(response => {
+	if(!req.query.limit || !req.query.page) {
+		let users = await User.find().select("-password");
 		res.status(200).json({
 			status: 200,
-			data: response
+			data: users
 		});
-	});
+	} else {
+		await User.paginate({}, { page: parseInt(req.query.page), limit: parseInt(req.query.limit), select: "-password" })
+		.then(response => {
+			res.status(200).json({
+				status: 200,
+				data: response
+			});
+		});
+	}
 });
 
 /**
