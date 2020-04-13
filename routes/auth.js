@@ -99,4 +99,42 @@ router.post('/', validateLoginRules(), validate, async (req, res) => {
 	});
 });
 
+/**
+ * @swagger
+ *
+ * /auth:
+ *   get:
+ *     tags: [auth]
+ *     description: Refresh token
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: JWT
+ *         description: JWT which needs to be refreshed
+ *         in:  header
+ *         required: true
+ *         type: string
+ *         schema:
+ *           $ref: '#/definitions/JWT'
+ *     responses:
+ *       200:
+ *         description: JWT
+ *         schema:
+ *           $ref: '#/definitions/JWT'
+ *       400:
+ *         description: Error
+ *         schema:
+ *           $ref: '#/definitions/error'
+ */
+router.get('/', auth, async (req, res) => {
+
+	const token = req.user.generateAuthToken();
+	res.status(200).json({
+		status: 200,
+		data: {
+			accessToken: token
+		}
+	});
+});
+
 module.exports = router;
