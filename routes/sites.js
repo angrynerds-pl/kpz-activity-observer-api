@@ -187,10 +187,7 @@ router.get('/', auth, admin, async (req, res) => {
  *           $ref: '#/definitions/error'
  */
 router.get('/me', auth, async (req, res) => {
-	let sites = await Site.find();
-	sites = sites.filter(item =>{
-		return item.occurences.findIndex(it =>{return it.user == req.user._id}) != -1;
-	});
+	let sites = await Site.find( { 'occurences.user': { $eq: req.user._id} } );
 	let userSites = [];
 	sites.forEach(item =>{
 		let index = item.occurences.findIndex(i =>{
@@ -237,10 +234,7 @@ router.get('/me', auth, async (req, res) => {
  *           $ref: '#/definitions/error'
  */
 router.get('/:id', auth, admin, async (req, res) => {
-	let sites = await Site.find();
-	sites = sites.filter(item =>{
-		return item.occurences.findIndex(it =>{return it.user == req.params.id}) != -1;
-	});
+	let sites = await Site.find( { 'occurences.user': { $eq: req.params.id} } );
 	let userSites = [];
 	sites.forEach(item =>{
 		let index = item.occurences.findIndex(i =>{ 
