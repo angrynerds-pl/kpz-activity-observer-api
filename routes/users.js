@@ -180,32 +180,6 @@ router.get('/', auth, admin, async (req, res) => {
 /**
  * @swagger
  *
- * /users/delete:
- *   delete:
- *     tags: [users]
- *     description: Drop entire database(for develop purposes only, will be removed in the future)
- *     responses:
- *       200:
- *         description: Success
- *       500:
- *         description: Error
- *         schema:
- *           $ref: '#/definitions/error'
- */
-
-router.delete('/delete', async (req, res) => {
-	if(process.env.NODE_ENV == 'development'){
-		await User.collection.drop();
-		res.status(200).json({
-			status: 200
-		});
-	}
-});
-
-
-/**
- * @swagger
- *
  * /users/:
  *   patch:
  *     tags: [users]
